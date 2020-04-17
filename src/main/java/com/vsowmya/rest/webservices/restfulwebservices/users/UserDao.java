@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * User Dao class - currently has static data. Will need to point to database later.
+ */
 @Component
 public class UserDao {
 
@@ -29,9 +32,10 @@ public class UserDao {
         return userList;
     }
 
-    public void save(User user) {
+    public User save(User user) {
         if(user.getId() == null)
             user.setId(++userCount);
         userList.add(user);
+        return user;
     }
 }
