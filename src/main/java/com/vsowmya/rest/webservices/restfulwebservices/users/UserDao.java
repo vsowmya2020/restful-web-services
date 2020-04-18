@@ -38,4 +38,14 @@ public class UserDao {
         userList.add(user);
         return user;
     }
+    public User deleteById(int id) {
+        Optional<User> userOptional = userList.stream().filter(matchId->matchId.getId()==id).findAny();
+        if(userOptional.isPresent()) {
+            User removeUser = userOptional.get();
+            userList.remove(removeUser);
+            return removeUser;
+        }
+        return null;
+    }
+
 }

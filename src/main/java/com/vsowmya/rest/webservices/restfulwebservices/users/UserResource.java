@@ -2,10 +2,13 @@ package com.vsowmya.rest.webservices.restfulwebservices.users;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
+import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.mvc.ControllerLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
+import javax.validation.Valid;
 import java.net.URI;
 import java.util.List;
 
@@ -22,11 +25,15 @@ public class UserResource {
 
     //Retrieve specific user
     @GetMapping(path="/users/{id}")
-    public User retrieveUser(@PathVariable int id) {
+    public Resource<User> retrieveUser(@PathVariable int id) {
         User user = userDao.findById(id);
         if(user==null)
             throw new UserNotFoundException("id="+id);
-        return user;
+        //using HATEOAS to give a graph of links to use for navigation
+        Resource<User> resource= new Resource<User>(user);
+        ControllerLinkBuilder linkBuilder = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+        resource.add(linkBuilder.withRel("all-users"));
+        return resource;
     }
 
     /**
@@ -37,8 +44,10 @@ public class UserResource {
      * @return
      */
     @PostMapping(path="/users")
-    public ResponseEntity<Object> createUser(@RequestBody User user) {
+    public ResponseEntity<Object> createUser(@Valid @RequestBody User user) {
         User savedUser = userDao.save(user);
+        if(savedUser == null)
+            throw new UserSaveException("name="+user.getName());
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("{/id}")
@@ -46,4 +55,14 @@ public class UserResource {
                 .toUri();
         return ResponseEntity.created(location).build();
     }
+
+    //Delete specific user
+    @DeleteMapping(path="/users/{id}")
+    public void deleteUser(@PathVariable int id) {
+        User user = userDao.deleteById(id);
+        if(user==null)
+            throw new UserNotFoundException("id="+id);
+
+    }
+
 }
